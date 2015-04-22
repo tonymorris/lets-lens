@@ -44,6 +44,8 @@ library
   hs-source-dirs:     src
 
   exposed-modules:    Lets
+                      Lets.GetSetLens
+                      Lets.StoreLens
                       
 test-suite            doctests
   type:
