@@ -125,8 +125,29 @@ setL k =
     (bool . Set.delete k <*> Set.insert k)
     (Set.member k)
 
-{-
+compose ::
+  Lens b c
+  -> Lens a b
+  -> Lens a c
+compose (Lens s1 g1) (Lens s2 g2) =
+  Lens
+    (\a -> s2 a . s1 (g2 a))
+    (g1 . g2)
 
-laws
+product ::
+  Lens a b
+  -> Lens c d
+  -> Lens (a, c) (b, d)
+product (Lens s1 g1) (Lens s2 g2) =
+  Lens
+    (\(a, c) (b, d) -> (s1 a b, s2 c d))
+    (\(a, c) -> (g1 a, g2 c))
 
--}
+choice ::
+  Lens a x
+  -> Lens b x
+  -> Lens (Either a b) x
+choice (Lens s1 g1) (Lens s2 g2) =
+  Lens
+    (\e x -> either (\a -> Left (s1 a x)) (\b -> Right (s2 b x)) e)
+    (either g1 g2)
