@@ -151,3 +151,10 @@ choice (Lens s1 g1) (Lens s2 g2) =
   Lens
     (\e x -> either (\a -> Left (s1 a x)) (\b -> Right (s2 b x)) e)
     (either g1 g2)
+
+{-
+
+enforce laws
+usage example
+
+-}
