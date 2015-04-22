@@ -11,13 +11,39 @@ import qualified Data.Map as Map(insert, delete, lookup)
 import Data.Maybe(maybe)
 import Data.Set(Set)
 import qualified Data.Set as Set(insert, delete, member)
-import Prelude
 
 data Lens a b =
   Lens
     (a -> b -> a)
     (a -> b)
-    
+
+law1 ::
+  Eq a =>
+  Lens a b
+  -> a
+  -> Bool
+law1 (Lens s g) =
+  \a -> s a (g a) == a
+
+law2 ::
+  Eq b =>
+  Lens a b
+  -> a
+  -> b
+  -> Bool
+law2 (Lens s g) a b =
+  g (s a b) == b
+
+law3 ::
+  Eq a =>
+  Lens a b
+  -> a
+  -> b
+  -> b
+  -> Bool
+law3 (Lens s _) a b1 b2 =
+  s (s a b1) b2 == s a b2
+
 get ::
   Lens a b
   -> a

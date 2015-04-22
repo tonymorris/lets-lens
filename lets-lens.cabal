@@ -36,8 +36,7 @@ library
                       -fno-warn-unused-imports
                       -fno-warn-type-defaults
 
-  default-extensions: NoImplicitPrelude
-                      ScopedTypeVariables
+  default-extensions: ScopedTypeVariables
                       InstanceSigs
 
   hs-source-dirs:     src
