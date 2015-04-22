@@ -1,3 +1,5 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Lets.StoreLens(
   Lens(..)
 ) where
@@ -10,4 +12,3 @@ data Store s a =
 data Lens a b =
   Lens
     (a -> Store b a)
-    
