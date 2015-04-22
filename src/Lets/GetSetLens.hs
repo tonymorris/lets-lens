@@ -48,8 +48,17 @@ fmodify ::
   -> (b -> f b)
   -> a
   -> f a
-fmodify (Lens s g) m a =
-  fmap (s a) (m (g a))
+fmodify (Lens s g) f a =
+  fmap (s a) (f (g a))
+
+(|=) ::
+  Functor f =>
+  Lens a b
+  -> f b
+  -> a
+  -> f a
+(|=) l =
+  fmodify l . const
 
 {-
 fstLens :: Lens (a, b) a
