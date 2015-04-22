@@ -4,6 +4,13 @@ module Lets.GetSetLens(
   Lens(..)
 ) where
 
+import Control.Applicative((<*>))
+import Data.Bool(bool)
+import Data.Map(Map)
+import qualified Data.Map as Map(insert, delete, lookup)
+import Data.Maybe(maybe)
+import Data.Set(Set)
+import qualified Data.Set as Set(insert, delete, member)
 import Prelude
 
 data Lens a b =
@@ -60,13 +67,40 @@ fmodify (Lens s g) f a =
 (|=) l =
   fmodify l . const
 
+fstL ::
+  Lens (x, y) x
+fstL =
+  Lens
+    (\(_, y) x -> (x, y))
+    (\(x, _) -> x)
+
+sndL ::
+  Lens (x, y) y
+sndL =
+  Lens
+    (\(x, _) y -> (x, y))
+    (\(_, y) -> y)
+
+mapL ::
+  Ord k =>
+  k
+  -> Lens (Map k v) (Maybe v)
+mapL k =
+  Lens
+    (maybe . Map.delete k <*> (flip (Map.insert k)))
+    (Map.lookup k)
+
+setL ::
+  Ord k =>
+  k
+  -> Lens (Set k) Bool
+setL k =
+  Lens
+    (bool . Set.delete k <*> Set.insert k)
+    (Set.member k)
+
 {-
-fstLens :: Lens (a, b) a
 
-sndLens :: Lens (a, b) b
-
-mapLens :: Ord k => k -> Lens (Map k v) (Maybe v)
-
-setLens :: Ord k => k -> Lens (Set k) Bool
+laws
 
 -}
