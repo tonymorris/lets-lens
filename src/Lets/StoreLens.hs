@@ -2,6 +2,7 @@
 
 module Lets.StoreLens(
   Lens(..)
+, Store(..)
 ) where
 
 data Store s a =

@@ -4,6 +4,7 @@ module Lets.GetSetLens(
   Lens(..)
 ) where
 
+import Prelude
 
 data Lens a b =
   Lens
@@ -40,3 +41,12 @@ modify (Lens s g) f a =
   -> a
 (.=) l =
   modify l . const
+
+fmodify ::
+  Functor f =>
+  Lens a b
+  -> (b -> f b)
+  -> a
+  -> f a
+fmodify (Lens s g) m a =
+  fmap (s a) (m (g a))
