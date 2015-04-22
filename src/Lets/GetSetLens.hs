@@ -50,3 +50,14 @@ fmodify ::
   -> f a
 fmodify (Lens s g) m a =
   fmap (s a) (m (g a))
+
+{-
+fstLens :: Lens (a, b) a
+
+sndLens :: Lens (a, b) b
+
+mapLens :: Ord k => k -> Lens (Map k v) (Maybe v)
+
+setLens :: Ord k => k -> Lens (Set k) Bool
+
+-}
