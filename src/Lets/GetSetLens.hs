@@ -124,6 +124,16 @@ modify (Lens s g) f a =
 
 infixl 5 .=
 
+-- |
+--
+-- >>> fmodify fstL (+) (5 :: Int, "abc") 8
+-- (13,"abc")
+--
+-- >>> fmodify fstL (\n -> bool Nothing (Just (n * 2)) (even n)) (10, "abc")
+-- Just (20,"abc")
+--
+-- >>> fmodify fstL (\n -> bool Nothing (Just (n * 2)) (even n)) (11, "abc")
+-- Nothing
 fmodify ::
   Functor f =>
   Lens a b
@@ -133,6 +143,13 @@ fmodify ::
 fmodify (Lens s g) f a =
   fmap (s a) (f (g a))
 
+-- |
+--
+-- >>> fstL |= Just 3 $ (7, "abc")
+-- Just (3,"abc")
+--
+-- >>> (fstL |= (+1) $ (3, "abc")) 17
+-- (18,"abc")
 (|=) ::
   Functor f =>
   Lens a b
