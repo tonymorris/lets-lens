@@ -103,6 +103,17 @@ modify ::
 modify (Lens s g) f a =
   s a (f (g a))
 
+-- |
+--
+-- >>> fstL .= 1 $ (0 :: Int, "abc")
+-- (1,"abc")
+--
+-- >>> sndL .= 1 $ ("abc", 0 :: Int)
+-- ("abc",1)
+--
+-- prop> let types = (x :: Int, y :: String) in set fstL (x, y) z == (fstL .= z $ (x, y))
+--
+-- prop> let types = (x :: Int, y :: String) in set sndL (x, y) z == (sndL .= z $ (x, y))
 (.=) ::
   Lens a b
   -> b
@@ -110,6 +121,8 @@ modify (Lens s g) f a =
   -> a
 (.=) l =
   modify l . const
+
+infixl 5 .=
 
 fmodify ::
   Functor f =>
@@ -128,6 +141,8 @@ fmodify (Lens s g) f a =
   -> f a
 (|=) l =
   fmodify l . const
+
+infixl 5 |=
 
 -- |
 --
