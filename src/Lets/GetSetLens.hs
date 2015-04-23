@@ -12,6 +12,9 @@ import Data.Maybe(maybe)
 import Data.Set(Set)
 import qualified Data.Set as Set(insert, delete, member)
 
+-- $setup
+-- >>> import qualified Data.Map as Map(fromList)
+-- >>> import Data.Char(ord)
 data Lens a b =
   Lens
     (a -> b -> a)
@@ -189,6 +192,25 @@ sndL =
     (\(x, _) y -> (x, y))
     (\(_, y) -> y)
 
+-- |
+--
+-- >>> get (mapL 3) (Map.fromList (map (\c -> (ord c - 96, c)) ['a'..'z']))
+-- Just 'c'
+--
+-- >>> get (mapL 33) (Map.fromList (map (\c -> (ord c - 96, c)) ['a'..'z']))
+-- Nothing
+--
+-- >>> set (mapL 3) (Map.fromList (map (\c -> (ord c - 96, c)) ['a'..'d'])) (Just 'X')
+-- fromList [(1,'a'),(2,'b'),(3,'X'),(4,'d')]
+--
+-- >>> set (mapL 33) (Map.fromList (map (\c -> (ord c - 96, c)) ['a'..'d'])) (Just 'X')
+-- fromList [(1,'a'),(2,'b'),(3,'c'),(4,'d'),(33,'X')]
+--
+-- >>> set (mapL 3) (Map.fromList (map (\c -> (ord c - 96, c)) ['a'..'d'])) Nothing
+-- fromList [(1,'a'),(2,'b'),(4,'d')]
+--
+-- >>> set (mapL 33) (Map.fromList (map (\c -> (ord c - 96, c)) ['a'..'d'])) Nothing
+-- fromList [(1,'a'),(2,'b'),(3,'c'),(4,'d')]
 mapL ::
   Ord k =>
   k
