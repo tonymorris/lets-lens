@@ -17,33 +17,47 @@ data Lens a b =
     (a -> b -> a)
     (a -> b)
 
-law1 ::
+-- | The get/set law of lenses. This function should always return @True@.
+getsetLaw ::
   Eq a =>
   Lens a b
   -> a
   -> Bool
-law1 (Lens s g) =
+getsetLaw (Lens s g) =
   \a -> s a (g a) == a
 
-law2 ::
+-- | The set/get law of lenses. This function should always return @True@.
+setgetLaw ::
   Eq b =>
   Lens a b
   -> a
   -> b
   -> Bool
-law2 (Lens s g) a b =
+setgetLaw (Lens s g) a b =
   g (s a b) == b
 
-law3 ::
+-- | The set/set law of lenses. This function should always return @True@.
+setsetLaw ::
   Eq a =>
   Lens a b
   -> a
   -> b
   -> b
   -> Bool
-law3 (Lens s _) a b1 b2 =
+setsetLaw (Lens s _) a b1 b2 =
   s (s a b1) b2 == s a b2
 
+-- |
+--
+-- >>> get fstL (0 :: Int, "abc")
+-- 0
+--
+-- >>> get sndL ("abc", 0 :: Int)
+-- 0
+--
+-- prop> let types = (x :: Int, y :: String) in get fstL (x, y) == x
+--
+-- prop> let types = (x :: Int, y :: String) in get sndL (x, y) == y
 get ::
   Lens a b
   -> a
@@ -51,14 +65,36 @@ get ::
 get (Lens _ g) =
   g
 
+-- |
+--
+-- >>> set fstL (0 :: Int, "abc") 1
+-- (1,"abc")
+--
+-- >>> set sndL ("abc", 0 :: Int) 1
+-- ("abc",1)
+--
+-- prop> let types = (x :: Int, y :: String) in set fstL (x, y) z == (z, y)
+--
+-- prop> let types = (x :: Int, y :: String) in set sndL (x, y) z == (x, z)
 set ::
   Lens a b
   -> a 
   -> b
   -> a
-set (Lens s _) =
-  s
+set (Lens s _) a =
+  s a
 
+-- |
+--
+-- >>> modify fstL (+1) (0 :: Int, "abc")
+-- (1,"abc")
+--
+-- >>> modify sndL (+1) ("abc", 0 :: Int)
+-- ("abc",1)
+--
+-- prop> let types = (x :: Int, y :: String) in modify fstL id (x, y) == (x, y)
+--
+-- prop> let types = (x :: Int, y :: String) in modify sndL id (x, y) == (x, y)
 modify ::
   Lens a b
   -> (b -> b)
@@ -93,6 +129,13 @@ fmodify (Lens s g) f a =
 (|=) l =
   fmodify l . const
 
+-- |
+--
+-- prop> let types = (x :: Int, y :: String) in getsetLaw fstL (x, y)
+--
+-- prop> let types = (x :: Int, y :: String) in setgetLaw fstL (x, y) z
+--
+-- prop> let types = (x :: Int, y :: String) in setsetLaw fstL (x, y) z
 fstL ::
   Lens (x, y) x
 fstL =
@@ -100,6 +143,13 @@ fstL =
     (\(_, y) x -> (x, y))
     (\(x, _) -> x)
 
+-- |
+--
+-- prop> let types = (x :: Int, y :: String) in getsetLaw sndL (x, y)
+--
+-- prop> let types = (x :: Int, y :: String) in setgetLaw sndL (x, y) z
+--
+-- prop> let types = (x :: Int, y :: String) in setsetLaw sndL (x, y) z
 sndL ::
   Lens (x, y) y
 sndL =
