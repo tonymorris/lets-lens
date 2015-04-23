@@ -14,6 +14,7 @@ import qualified Data.Set as Set(insert, delete, member)
 
 -- $setup
 -- >>> import qualified Data.Map as Map(fromList)
+-- >>> import qualified Data.Set as Set(fromList)
 -- >>> import Data.Char(ord)
 data Lens a b =
   Lens
@@ -194,10 +195,10 @@ sndL =
 
 -- |
 --
--- >>> get (mapL 3) (Map.fromList (map (\c -> (ord c - 96, c)) ['a'..'z']))
+-- >>> get (mapL 3) (Map.fromList (map (\c -> (ord c - 96, c)) ['a'..'d']))
 -- Just 'c'
 --
--- >>> get (mapL 33) (Map.fromList (map (\c -> (ord c - 96, c)) ['a'..'z']))
+-- >>> get (mapL 33) (Map.fromList (map (\c -> (ord c - 96, c)) ['a'..'d']))
 -- Nothing
 --
 -- >>> set (mapL 3) (Map.fromList (map (\c -> (ord c - 96, c)) ['a'..'d'])) (Just 'X')
@@ -220,6 +221,25 @@ mapL k =
     (maybe . Map.delete k <*> (flip (Map.insert k)))
     (Map.lookup k)
 
+-- |
+--
+-- >>> get (setL 3) (Set.fromList [1..5])
+-- True
+--
+-- >>> get (setL 33) (Set.fromList [1..5])
+-- False
+--
+-- >>> set (setL 3) (Set.fromList [1..5]) True
+-- fromList [1,2,3,4,5]
+--
+-- >>> set (setL 3) (Set.fromList [1..5]) False
+-- fromList [1,2,4,5]
+--
+-- >>> set (setL 33) (Set.fromList [1..5]) True
+-- fromList [1,2,3,4,5,33]
+--
+-- >>> set (setL 33) (Set.fromList [1..5]) False
+-- fromList [1,2,3,4,5]
 setL ::
   Ord k =>
   k
@@ -255,6 +275,13 @@ choice (Lens s1 g1) (Lens s2 g2) =
   Lens
     (\e x -> either (\a -> Left (s1 a x)) (\b -> Right (s2 b x)) e)
     (either g1 g2)
+
+identity ::
+  Lens a a
+identity =
+  Lens
+    const
+    (\x -> x)
 
 {-
 
