@@ -1,8 +1,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Lets.GetSetLens(
+module Lets.GetSetLens {- (
   Lens(..)
-) where
+, compose
+) -} where
 
 import Control.Applicative((<*>))
 import Data.Bool(bool)
@@ -11,6 +12,7 @@ import qualified Data.Map as Map(insert, delete, lookup)
 import Data.Maybe(maybe)
 import Data.Set(Set)
 import qualified Data.Set as Set(insert, delete, member)
+import Prelude hiding (product)
 
 -- $setup
 -- >>> import qualified Data.Map as Map(fromList)
@@ -249,6 +251,13 @@ setL k =
     (bool . Set.delete k <*> Set.insert k)
     (Set.member k)
 
+-- |
+--
+-- >>> get (compose fstL sndL) ("abc", (7, "def"))
+-- 7
+--
+-- >>> set (compose fstL sndL) ("abc", (7, "def")) 8
+-- ("abc",(8,"def"))
 compose ::
   Lens b c
   -> Lens a b
@@ -258,6 +267,27 @@ compose (Lens s1 g1) (Lens s2 g2) =
     (\a -> s2 a . s1 (g2 a))
     (g1 . g2)
 
+-- |
+--
+-- >>> get identity 3
+-- 3
+--
+-- >>> set identity 3 4
+-- 3
+identity ::
+  Lens a a
+identity =
+  Lens
+    const
+    (\x -> x)
+
+-- |
+--
+-- >>> get (product fstL sndL) (("abc", 3), (4, "def"))
+-- ("abc","def")
+--
+-- >>> set (product fstL sndL) (("abc", 3), (4, "def")) ("ghi", "jkl")
+-- (("ghi",3),(4,"jkl"))
 product ::
   Lens a b
   -> Lens c d
@@ -267,6 +297,19 @@ product (Lens s1 g1) (Lens s2 g2) =
     (\(a, c) (b, d) -> (s1 a b, s2 c d))
     (\(a, c) -> (g1 a, g2 c))
 
+-- |
+--
+-- >>> get (choice fstL sndL) (Left ("abc", 7))
+-- "abc"
+--
+-- >>> get (choice fstL sndL) (Right ("abc", 7))
+-- 7
+--
+-- >>> set (choice fstL sndL) (Left ("abc", 7)) "def"
+-- Left ("def",7)
+--
+-- >>> set (choice fstL sndL) (Right ("abc", 7)) 8
+-- Right ("abc",8)
 choice ::
   Lens a x
   -> Lens b x
@@ -275,13 +318,6 @@ choice (Lens s1 g1) (Lens s2 g2) =
   Lens
     (\e x -> either (\a -> Left (s1 a x)) (\b -> Right (s2 b x)) e)
     (either g1 g2)
-
-identity ::
-  Lens a a
-identity =
-  Lens
-    const
-    (\x -> x)
 
 {-
 
