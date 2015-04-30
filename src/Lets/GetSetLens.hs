@@ -7,6 +7,7 @@ module Lets.GetSetLens {- (
 
 import Control.Applicative((<*>))
 import Data.Bool(bool)
+import Data.Char(toUpper)
 import Data.Map(Map)
 import qualified Data.Map as Map(insert, delete, lookup)
 import Data.Maybe(maybe)
@@ -109,26 +110,37 @@ modify ::
 modify (Lens s g) f a =
   s a (f (g a))
 
+-- | An alias for @modify@.
+(%~) ::
+  Lens a b
+  -> (b -> b)
+  -> a
+  -> a
+(%~) =
+  modify
+
+infixr 4 %~
+
 -- |
 --
--- >>> fstL .= 1 $ (0 :: Int, "abc")
+-- >>> fstL .~ 1 $ (0 :: Int, "abc")
 -- (1,"abc")
 --
--- >>> sndL .= 1 $ ("abc", 0 :: Int)
+-- >>> sndL .~ 1 $ ("abc", 0 :: Int)
 -- ("abc",1)
 --
--- prop> let types = (x :: Int, y :: String) in set fstL (x, y) z == (fstL .= z $ (x, y))
+-- prop> let types = (x :: Int, y :: String) in set fstL (x, y) z == (fstL .~ z $ (x, y))
 --
--- prop> let types = (x :: Int, y :: String) in set sndL (x, y) z == (sndL .= z $ (x, y))
-(.=) ::
+-- prop> let types = (x :: Int, y :: String) in set sndL (x, y) z == (sndL .~ z $ (x, y))
+(.~) ::
   Lens a b
   -> b
   -> a
   -> a
-(.=) l =
+(.~) l =
   modify l . const
 
-infixl 5 .=
+infixl 5 .~
 
 -- |
 --
@@ -267,6 +279,16 @@ compose (Lens s1 g1) (Lens s2 g2) =
     (\a -> s2 a . s1 (g2 a))
     (g1 . g2)
 
+-- | An alias for @compose@.
+(|.) ::
+  Lens b c
+  -> Lens a b
+  -> Lens a c
+(|.) =
+  compose
+
+infixr 9 |.
+
 -- |
 --
 -- >>> get identity 3
@@ -297,6 +319,16 @@ product (Lens s1 g1) (Lens s2 g2) =
     (\(a, c) (b, d) -> (s1 a b, s2 c d))
     (\(a, c) -> (g1 a, g2 c))
 
+-- | An alias for @product@.
+(***) ::
+  Lens a b
+  -> Lens c d
+  -> Lens (a, c) (b, d)
+(***) =
+  product
+
+infixr 3 ***
+
 -- |
 --
 -- >>> get (choice fstL sndL) (Left ("abc", 7))
@@ -319,9 +351,238 @@ choice (Lens s1 g1) (Lens s2 g2) =
     (\e x -> either (\a -> Left (s1 a x)) (\b -> Right (s2 b x)) e)
     (either g1 g2)
 
-{-
+-- | An alias for @choice@.
+(|||) ::
+  Lens a x
+  -> Lens b x
+  -> Lens (Either a b) x
+(|||) =
+  choice
 
-enforce laws
-usage example
+infixr 2 |||
 
--}
+----
+
+data Locality =
+  Locality
+    String -- city
+    String -- state
+    String -- country
+  deriving (Eq, Show)  
+
+cityL ::
+  Lens Locality String
+cityL =
+  Lens
+    (\(Locality _ t y) c -> Locality c t y)
+    (\(Locality c _ _) -> c)
+
+stateL ::
+  Lens Locality String
+stateL =
+  Lens
+    (\(Locality c _ y) t -> Locality c t y)
+    (\(Locality _ t _) -> t)
+
+countryL ::
+  Lens Locality String
+countryL =
+  Lens
+    (\(Locality c t _) y -> Locality c t y)
+    (\(Locality _ _ y) -> y)
+
+data Address =
+  Address
+    String -- street
+    String -- suburb
+    Locality
+  deriving (Eq, Show)  
+
+streetL ::
+  Lens Address String
+streetL =
+  Lens
+    (\(Address _ s l) t -> Address t s l)
+    (\(Address t _ _) -> t)
+
+suburbL ::
+  Lens Address String
+suburbL =
+  Lens
+    (\(Address t _ l) s -> Address t s l)
+    (\(Address _ s _) -> s)
+
+localityL ::
+  Lens Address Locality
+localityL =
+  Lens
+    (\(Address t s _) l -> Address t s l)
+    (\(Address _ _ l) -> l)
+
+data Person =
+  Person
+    Int -- age
+    String -- name
+    Address -- address
+  deriving (Eq, Show)
+
+ageL ::
+  Lens Person Int
+ageL =
+  Lens
+    (\(Person _ n d) a -> Person a n d)
+    (\(Person a _ _) -> a)
+
+nameL ::
+  Lens Person String
+nameL =
+  Lens
+    (\(Person a _ d) n -> Person a n d)
+    (\(Person _ n _) -> n)
+
+addressL ::
+  Lens Person Address
+addressL =
+  Lens
+    (\(Person a n _) d -> Person a n d)
+    (\(Person _ _ d) -> d)
+
+fredLocality ::
+  Locality
+fredLocality =
+  Locality
+    "Fredmania"
+    "New South Fred"
+    "Fredalia"
+
+fredAddress ::
+  Address
+fredAddress =
+  Address
+    "15 Fred St"
+    "Fredville"
+    fredLocality
+
+fred ::
+  Person
+fred =
+  Person
+    24
+    "Fred"
+    fredAddress
+
+maryLocality ::
+  Locality
+maryLocality =
+  Locality
+    "Mary Mary"
+    "Western Mary"
+    "Maristan"
+
+maryAddress ::
+  Address
+maryAddress =
+  Address
+    "83 Mary Ln"
+    "Maryland"
+    maryLocality
+
+mary ::
+  Person
+mary =
+  Person
+    28
+    "Mary"
+    maryAddress
+
+-- |
+--
+-- >>> get (suburbL |. addressL) fred
+-- "Fredville"
+--
+-- >>> get (suburbL |. addressL) mary
+-- "Maryland"
+getSuburb ::
+  Person
+  -> String
+getSuburb =
+  get (suburbL |. addressL)
+
+-- |
+--
+-- >>> setStreet fred "Some Other St"
+-- Person 24 "Fred" (Address "Some Other St" "Fredville" (Locality "Fredmania" "New South Fred" "Fredalia"))
+--
+-- >>> setStreet mary "Some Other St"
+-- Person 28 "Mary" (Address "Some Other St" "Maryland" (Locality "Mary Mary" "Western Mary" "Maristan"))
+setStreet ::
+  Person
+  -> String
+  -> Person
+setStreet =
+  set (streetL |. addressL)
+
+-- |
+--
+-- >>> getAgeAndCountry (fred, maryLocality)
+-- (24,"Maristan")
+--
+-- >>> getAgeAndCountry (mary, fredLocality)
+-- (28,"Fredalia")
+getAgeAndCountry ::
+  (Person, Locality)
+  -> (Int, String)
+getAgeAndCountry =
+  get (ageL *** countryL)
+
+-- |
+--
+-- >>> setCityAndLocality (fred, maryAddress) ("Some Other City", fredLocality)
+-- (Person 24 "Fred" (Address "15 Fred St" "Fredville" (Locality "Some Other City" "New South Fred" "Fredalia")),Address "83 Mary Ln" "Maryland" (Locality "Fredmania" "New South Fred" "Fredalia"))
+--
+-- >>> setCityAndLocality (mary, fredAddress) ("Some Other City", maryLocality)
+-- (Person 28 "Mary" (Address "83 Mary Ln" "Maryland" (Locality "Some Other City" "Western Mary" "Maristan")),Address "15 Fred St" "Fredville" (Locality "Mary Mary" "Western Mary" "Maristan"))
+setCityAndLocality ::
+  (Person, Address) -> (String, Locality) -> (Person, Address)
+setCityAndLocality =
+  set (cityL |. localityL |. addressL *** localityL)
+  
+-- |
+--
+-- >>> getSuburbOrCity (Left maryAddress)
+-- "Maryland"
+--
+-- >>> getSuburbOrCity (Right fredLocality)
+-- "Fredmania"
+getSuburbOrCity ::
+  Either Address Locality
+  -> String
+getSuburbOrCity =
+  get (suburbL ||| cityL)
+
+-- |
+--
+-- >>> setStreetOrState (Right maryLocality) "Some Other State"
+-- Right (Locality "Mary Mary" "Some Other State" "Maristan")
+--
+-- >>> setStreetOrState (Left fred) "Some Other St"
+-- Left (Person 24 "Fred" (Address "Some Other St" "Fredville" (Locality "Fredmania" "New South Fred" "Fredalia")))
+setStreetOrState ::
+  Either Person Locality
+  -> String
+  -> Either Person Locality
+setStreetOrState =
+  set (streetL |. addressL ||| stateL)
+
+-- |
+--
+-- >>> modifyCityUppercase fred
+-- Person 24 "Fred" (Address "15 Fred St" "Fredville" (Locality "FREDMANIA" "New South Fred" "Fredalia"))
+--
+-- >>> modifyCityUppercase mary
+-- Person 28 "Mary" (Address "83 Mary Ln" "Maryland" (Locality "MARY MARY" "Western Mary" "Maristan"))
+modifyCityUppercase ::
+  Person
+  -> Person
+modifyCityUppercase =
+  cityL |. localityL |. addressL %~ map toUpper
