@@ -1,12 +1,21 @@
-module Lets.Data where
-  
+module Lets.Data (
+  Locality(..)
+, Address(..)
+, Person(..)
+, fredLocality
+, fredAddress
+, fred
+, maryLocality
+, maryAddress
+, mary
+) where
+
 data Locality =
   Locality
     String -- city
     String -- state
     String -- country
   deriving (Eq, Show)  
-
 
 data Address =
   Address
