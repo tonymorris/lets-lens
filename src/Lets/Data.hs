@@ -31,7 +31,6 @@ data Person =
     Address -- address
   deriving (Eq, Show)
 
-
 fredLocality ::
   Locality
 fredLocality =
@@ -79,4 +78,3 @@ mary =
     28
     "Mary"
     maryAddress
-
