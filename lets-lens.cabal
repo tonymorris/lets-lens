@@ -36,12 +36,12 @@ library
                       -fno-warn-unused-imports
                       -fno-warn-type-defaults
 
-  default-extensions: ScopedTypeVariables
-                      InstanceSigs
+  default-extensions: InstanceSigs
 
   hs-source-dirs:     src
 
   exposed-modules:    Lets
+                      Lets.Data
                       Lets.GetSetLens
                       Lets.StoreLens
                       

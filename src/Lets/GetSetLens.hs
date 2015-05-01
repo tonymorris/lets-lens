@@ -1,9 +1,41 @@
-{-# LANGUAGE ScopedTypeVariables #-}
-
-module Lets.GetSetLens {- (
+module Lets.GetSetLens (
   Lens(..)
+, getsetLaw
+, setgetLaw
+, setsetLaw
+, get
+, set
+, modify
+, (%~)
+, fmodify
+, (|=)
+, fstL
+, sndL
+, mapL
+, setL
 , compose
-) -} where
+, (|.)
+, identity
+, product
+, (***)
+, choice
+, (|||)
+, cityL
+, countryL
+, streetL
+, suburbL
+, localityL
+, ageL
+, nameL
+, addressL
+, getSuburb
+, setStreet
+, getAgeAndCountry
+, setCityAndLocality
+, getSuburbOrCity
+, setStreetOrState
+, modifyCityUppercase
+) where
 
 import Control.Applicative((<*>))
 import Data.Bool(bool)
@@ -13,6 +45,7 @@ import qualified Data.Map as Map(insert, delete, lookup)
 import Data.Maybe(maybe)
 import Data.Set(Set)
 import qualified Data.Set as Set(insert, delete, member)
+import Lets.Data
 import Prelude hiding (product)
 
 -- $setup
@@ -363,13 +396,6 @@ infixr 2 |||
 
 ----
 
-data Locality =
-  Locality
-    String -- city
-    String -- state
-    String -- country
-  deriving (Eq, Show)  
-
 cityL ::
   Lens Locality String
 cityL =
@@ -390,13 +416,6 @@ countryL =
   Lens
     (\(Locality c t _) y -> Locality c t y)
     (\(Locality _ _ y) -> y)
-
-data Address =
-  Address
-    String -- street
-    String -- suburb
-    Locality
-  deriving (Eq, Show)  
 
 streetL ::
   Lens Address String
@@ -419,13 +438,6 @@ localityL =
     (\(Address t s _) l -> Address t s l)
     (\(Address _ _ l) -> l)
 
-data Person =
-  Person
-    Int -- age
-    String -- name
-    Address -- address
-  deriving (Eq, Show)
-
 ageL ::
   Lens Person Int
 ageL =
@@ -446,54 +458,6 @@ addressL =
   Lens
     (\(Person a n _) d -> Person a n d)
     (\(Person _ _ d) -> d)
-
-fredLocality ::
-  Locality
-fredLocality =
-  Locality
-    "Fredmania"
-    "New South Fred"
-    "Fredalia"
-
-fredAddress ::
-  Address
-fredAddress =
-  Address
-    "15 Fred St"
-    "Fredville"
-    fredLocality
-
-fred ::
-  Person
-fred =
-  Person
-    24
-    "Fred"
-    fredAddress
-
-maryLocality ::
-  Locality
-maryLocality =
-  Locality
-    "Mary Mary"
-    "Western Mary"
-    "Maristan"
-
-maryAddress ::
-  Address
-maryAddress =
-  Address
-    "83 Mary Ln"
-    "Maryland"
-    maryLocality
-
-mary ::
-  Person
-mary =
-  Person
-    28
-    "Mary"
-    maryAddress
 
 -- |
 --
