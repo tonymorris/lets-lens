@@ -29,7 +29,8 @@ data Store s a =
 
 setS ::
   Store s a
-  -> s -> a
+  -> s
+  -> a
 setS (Store s _) =
   s
 
@@ -39,7 +40,33 @@ getS ::
 getS (Store _ g) =
   g
 
--- todo; functor, comonad
+mapS ::
+  (a -> b)
+  -> Store s a
+  -> Store s b
+mapS f (Store s g) =
+  Store (f . s) g
+
+duplicateS ::
+  Store s a
+  -> Store s (Store s a)
+duplicateS (Store s g) =
+  Store (Store s) g
+
+extendS ::
+  (Store s a -> b)
+  -> Store s a
+  -> Store s b
+extendS f =
+  mapS f . duplicateS
+
+extractS ::
+  Store s a
+  -> a
+extractS (Store s g) =
+  s g
+
+----
 
 data Lens a b =
   Lens
@@ -370,11 +397,9 @@ choice ::
   -> Lens (Either a b) x
 choice (Lens r1) (Lens r2) =
   Lens (\e -> 
-    let seton x f = let Store s g = x
-                    in Store (f . s) g
-    in case e of 
-         Left a -> seton (r1 a) Left
-         Right b -> seton (r2 b) Right)
+    case e of 
+      Left a -> mapS Left (r1 a)
+      Right b -> mapS Right (r2 b))
 
 -- | An alias for @choice@.
 (|||) ::
