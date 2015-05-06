@@ -52,6 +52,7 @@ import Prelude hiding (product)
 -- >>> import qualified Data.Map as Map(fromList)
 -- >>> import qualified Data.Set as Set(fromList)
 -- >>> import Data.Char(ord)
+
 data Lens a b =
   Lens
     (a -> b -> a)
@@ -328,13 +329,13 @@ infixr 9 |.
 -- 3
 --
 -- >>> set identity 3 4
--- 3
+-- 4
 identity ::
   Lens a a
 identity =
   Lens
-    const
-    (\x -> x)
+    (const id)
+    id
 
 -- |
 --
