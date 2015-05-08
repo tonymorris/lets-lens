@@ -58,36 +58,6 @@ data Lens a b =
     (a -> b -> a)
     (a -> b)
 
--- | The get/set law of lenses. This function should always return @True@.
-getsetLaw ::
-  Eq a =>
-  Lens a b
-  -> a
-  -> Bool
-getsetLaw (Lens s g) =
-  \a -> s a (g a) == a
-
--- | The set/get law of lenses. This function should always return @True@.
-setgetLaw ::
-  Eq b =>
-  Lens a b
-  -> a
-  -> b
-  -> Bool
-setgetLaw (Lens s g) a b =
-  g (s a b) == b
-
--- | The set/set law of lenses. This function should always return @True@.
-setsetLaw ::
-  Eq a =>
-  Lens a b
-  -> a
-  -> b
-  -> b
-  -> Bool
-setsetLaw (Lens s _) a b1 b2 =
-  s (s a b1) b2 == s a b2
-
 -- |
 --
 -- >>> get fstL (0 :: Int, "abc")
@@ -124,6 +94,36 @@ set ::
   -> a
 set (Lens s _) a =
   s a
+
+-- | The get/set law of lenses. This function should always return @True@.
+getsetLaw ::
+  Eq a =>
+  Lens a b
+  -> a
+  -> Bool
+getsetLaw l =
+  \a -> set l a (get l a) == a
+  
+-- | The set/get law of lenses. This function should always return @True@.
+setgetLaw ::
+  Eq b =>
+  Lens a b
+  -> a
+  -> b
+  -> Bool
+setgetLaw l a b =
+  get l (set l a b) == b
+  
+-- | The set/set law of lenses. This function should always return @True@.
+setsetLaw ::
+  Eq a =>
+  Lens a b
+  -> a
+  -> b
+  -> b
+  -> Bool
+setsetLaw l a b1 b2 =
+  set l (set l a b1) b2 == set l a b2
 
 -- |
 --
