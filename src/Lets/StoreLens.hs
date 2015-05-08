@@ -1,9 +1,50 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Lets.StoreLens {-(
-  Lens(..)
-, Store(..)
-) -} where
+module Lets.StoreLens (
+  Store(..)
+, setS
+, getS
+, mapS
+, duplicateS
+, extendS
+, extractS
+, Lens(..)
+, getsetLaw
+, setgetLaw
+, setsetLaw
+, get
+, set
+, modify
+, (%~)
+, fmodify
+, (|=)
+, fstL
+, sndL
+, mapL
+, setL
+, compose
+, (|.)
+, identity
+, product
+, (***)
+, choice
+, (|||)
+, cityL
+, countryL
+, streetL
+, suburbL
+, localityL
+, ageL
+, nameL
+, addressL
+, getSuburb
+, setStreet
+, getAgeAndCountry
+, setCityAndLocality
+, getSuburbOrCity
+, setStreetOrState
+, modifyCityUppercase
+) where
 
 import Control.Applicative((<*>))
 import Data.Bool(bool)
