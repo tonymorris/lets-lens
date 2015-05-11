@@ -180,6 +180,8 @@ setsetLaw ::
 setsetLaw l a b1 b2 =
   set l (set l a b1) b2 == set l a b2
 
+----
+
 -- |
 --
 -- >>> modify fstL (+1) (0 :: Int, "abc")
