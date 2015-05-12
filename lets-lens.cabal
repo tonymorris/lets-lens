@@ -43,6 +43,7 @@ library
   exposed-modules:    Lets
                       Lets.Data
                       Lets.GetSetLens
+                      Lets.Lens
                       Lets.OpticLens
                       Lets.StoreLens
                       
