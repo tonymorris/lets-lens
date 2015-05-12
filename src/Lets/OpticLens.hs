@@ -3,12 +3,10 @@
 
 module Lets.OpticLens where
 
-import Control.Applicative((<*>))
 import Data.Bool(bool)
 import Data.Char(toUpper)
 import Data.Map(Map)
 import qualified Data.Map as Map(insert, delete, lookup)
-import Data.Maybe(maybe)
 import Data.Set(Set)
 import qualified Data.Set as Set(insert, delete, member)
 import Lets.Data
