@@ -1,6 +1,6 @@
 {-# LANGUAGE RankNTypes #-}
 
-module Lets.Lens where
+module Lets.Derive where
 
 import Data.Foldable(Foldable(..))
 import Data.Functor((<$>))
