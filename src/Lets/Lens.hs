@@ -79,22 +79,32 @@ fmapTAgain =
   over traverse
 
 -- | Let's create a type-alias for this type of function.
-type Setter s t a b =
-  ((a -> Identity b) -> s -> Identity t)
+type Set s t a b =
+  (a -> Identity b)
+  -> s
+  -> Identity t
 
 -- | Let's write an inverse to @over@ that does the @Identity@ wrapping &
 -- unwrapping.
 sets ::
   ((a -> b) -> s -> t)
-  -> Setter s t a b  
+  -> Set s t a b  
 sets t f =
   Identity . t (getIdentity . f)
 
 mapped ::
   Functor f =>
-  Setter (f a) (f b) a b
+  Set (f a) (f b) a b
 mapped =
   sets fmap
+
+set ::
+  Set s t a b
+  -> b
+  -> s
+  -> t
+set s b =
+  over s (const b)
 
 ----
 
@@ -129,7 +139,11 @@ foldMapTAgain =
 
 -- | Let's create a type-alias for this type of function.
 type Fold s t a b =
-  forall r. Monoid r => (a -> Const r b) -> s -> Const r t
+  forall r.
+  Monoid r =>
+  (a -> Const r b)
+  -> s
+  -> Const r t
 
 -- | Let's write an inverse to @foldMapOf@ that does the @Const@ wrapping &
 -- unwrapping.
@@ -149,9 +163,28 @@ folded =
 
 ----
 
+-- | @Get@ is like @Fold@, but without the @Monoid@ constraint.
+type Get r s a =
+  (a -> Const r a)
+  -> s
+  -> Const r s
+
+get ::
+  Get a s a
+  -> s
+  -> a
+get t a =
+  getConst (t Const a)
+
+----
+
 -- | Let's generalise @Identity@ and @Const r@ to any @Applicative@ instance.
 type Traversal s t a b =
-  forall f. Applicative f => (a -> f b) -> s -> f t
+  forall f.
+  Applicative f =>
+  (a -> f b)
+  -> s
+  -> f t
 
 -- | Traverse both sides of a pair.
 both ::
@@ -174,3 +207,18 @@ traverseRight _ (Left x) =
   pure (Left x)
 traverseRight f (Right a) =
   Right <$> f a
+
+----
+
+-- | @Const r@ is @Applicative@, if @Monoid r@, however, without the @Monoid@
+-- constraint (as in @Get@), the only shared abstraction between @Identity@ and
+-- @Const r@ is @Functor@.
+--
+-- Consequently, we arrive at our lens derivation:
+type Lens s t a b =
+  forall f.
+  Functor f =>
+  (a -> f b)
+  -> s
+  -> f t
+  
