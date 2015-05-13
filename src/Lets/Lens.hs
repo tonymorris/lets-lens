@@ -1,5 +1,9 @@
+{-# LANGUAGE RankNTypes #-}
+
 module Lets.Lens where
 
+import Data.Foldable(Foldable(..))
+import Data.Functor((<$>))
 import Data.Monoid(Monoid(..))
 import Data.Traversable(Traversable(..))
 import Control.Applicative(Applicative(..))
@@ -56,6 +60,44 @@ fmapT ::
 fmapT f =
   getIdentity . traverse (Identity . f)
 
+-- | Let's refactor out the call to @traverse@ as an argument to @fmapT@.
+over :: 
+  ((a -> Identity b) -> s -> Identity t)
+  -> (a -> b)
+  -> s
+  -> t
+over t f =
+  getIdentity . t (Identity . f)
+
+-- | Here is @fmapT@ again, passing @traverse@ to @over@.
+fmapTAgain ::
+  Traversable t =>
+  (a -> b)
+  -> t a
+  -> t b
+fmapTAgain =
+  over traverse
+
+-- | Let's create a type-alias for this type of function.
+type Setter s t a b =
+  ((a -> Identity b) -> s -> Identity t)
+
+-- | Let's write an inverse to @over@ that does the @Identity@ wrapping &
+-- unwrapping.
+sets ::
+  ((a -> b) -> s -> t)
+  -> Setter s t a b  
+sets t f =
+  Identity . t (getIdentity . f)
+
+mapped ::
+  Functor f =>
+  Setter (f a) (f b) a b
+mapped =
+  sets fmap
+
+----
+
 -- | Observe that @fmap@ can be recovered from @traverse@ using @Identity@.
 --
 -- /Reminder:/ foldMap :: (Foldable t, Monoid b) => (a -> b) -> t a -> b
@@ -66,3 +108,69 @@ foldMapT ::
   -> b
 foldMapT f =
   getConst . traverse (Const . f)
+
+-- | Let's refactor out the call to @traverse@ as an argument to @foldMapT@.
+foldMapOf ::
+  ((a -> Const r b) -> s -> Const r t)
+  -> (a -> r)
+  -> s
+  -> r
+foldMapOf t f =
+  getConst . t (Const . f)
+
+-- | Here is @foldMapT@ again, passing @traverse@ to @foldMapOf@.
+foldMapTAgain ::
+  (Traversable t, Monoid b) =>
+  (a -> b)
+  -> t a
+  -> b
+foldMapTAgain =
+  foldMapOf traverse
+
+-- | Let's create a type-alias for this type of function.
+type Fold s t a b =
+  forall r. Monoid r => (a -> Const r b) -> s -> Const r t
+
+-- | Let's write an inverse to @foldMapOf@ that does the @Const@ wrapping &
+-- unwrapping.
+folds ::
+  ((a -> b) -> s -> t)
+  -> (a -> Const b a)
+  -> s
+  -> Const t s
+folds t f =
+  Const . t (getConst . f)
+
+folded ::
+  Foldable f =>
+  Fold (f a) (f a) a a
+folded =
+  folds foldMap
+
+----
+
+-- | Let's generalise @Identity@ and @Const r@ to any @Applicative@ instance.
+type Traversal s t a b =
+  forall f. Applicative f => (a -> f b) -> s -> f t
+
+-- | Traverse both sides of a pair.
+both ::
+  Traversal (a, a) (b, b) a b
+both f (a, b) =
+  (,) <$> f a <*> f b
+
+-- | Traverse the left side of @Either@.
+traverseLeft ::
+  Traversal (Either a x) (Either b x) a b
+traverseLeft f (Left a) =
+  Left <$> f a
+traverseLeft _ (Right x) =
+  pure (Right x)
+
+-- | Traverse the right side of @Either@.
+traverseRight ::
+  Traversal (Either x a) (Either x b) a b
+traverseRight _ (Left x) =
+  pure (Left x)
+traverseRight f (Right a) =
+  Right <$> f a
