@@ -17,9 +17,9 @@ import Prelude hiding (product)
 -- >>> import qualified Data.Set as Set(fromList)
 -- >>> import Data.Char(ord)
 
-data Lens a b =
+data Lens s t a b =
   Lens
-    (forall f. Functor f => (b -> f b) -> a -> f a)
+    (forall f. Functor f => (a -> f b) -> s -> f t)
 
 data Const a b =
   Const {
@@ -42,47 +42,47 @@ instance Functor Identity where
     Identity (f a)
 
 get ::
-  Lens a b
+  Lens s t a b
+  -> s
   -> a
-  -> b
 get (Lens r) =
   getConst . r Const
 
 set ::
-  Lens a b
-  -> a
+  Lens s t a b
+  -> s
   -> b
-  -> a
+  -> t
 set (Lens r) a b =
   getIdentity (r (const (Identity b)) a)
 
 -- | The get/set law of lenses. This function should always return @True@.
 getsetLaw ::
-  Eq a =>
-  Lens a b
-  -> a
+  Eq s =>
+  Lens s s a a
+  -> s
   -> Bool
 getsetLaw l =
   \a -> set l a (get l a) == a
-  
+
 -- | The set/get law of lenses. This function should always return @True@.
 setgetLaw ::
-  Eq b =>
-  Lens a b
+  Eq a =>
+  Lens s s a a
+  -> s
   -> a
-  -> b
   -> Bool
 setgetLaw l a b =
   get l (set l a b) == b
-  
+
 -- | The set/set law of lenses. This function should always return @True@.
 setsetLaw ::
-  Eq a =>
-  Lens a b
-  -> a
+  Eq s =>
+  Lens s s a b
+  -> s
   -> b
   -> b
-  -> Bool
+  -> Bool 
 setsetLaw l a b1 b2 =
   set l (set l a b1) b2 == set l a b2
 
@@ -100,19 +100,19 @@ setsetLaw l a b1 b2 =
 --
 -- prop> let types = (x :: Int, y :: String) in modify sndL id (x, y) == (x, y)
 modify ::
-  Lens a b
-  -> (b -> b)
-  -> a
-  -> a
+  Lens s t a b
+  -> (a -> b)
+  -> s
+  -> t
 modify (Lens r) f =
   getIdentity . r (Identity . f)
 
 -- | An alias for @modify@.
 (%~) ::
-  Lens a b
-  -> (b -> b)
-  -> a
-  -> a
+  Lens s t a b
+  -> (a -> b)
+  -> s
+  -> t
 (%~) =
   modify
 
@@ -130,10 +130,10 @@ infixr 4 %~
 --
 -- prop> let types = (x :: Int, y :: String) in set sndL (x, y) z == (sndL .~ z $ (x, y))
 (.~) ::
-  Lens a b
+  Lens s t a b
   -> b
-  -> a
-  -> a
+  -> s
+  -> t
 (.~) l =
   modify l . const
 
@@ -151,10 +151,10 @@ infixl 5 .~
 -- Nothing
 fmodify ::
   Functor f =>
-  Lens a b
-  -> (b -> f b)
-  -> a
-  -> f a
+  Lens s t a b
+  -> (a -> f b)
+  -> s
+  -> f t 
 fmodify (Lens r) f a =
   r f a
 
@@ -167,10 +167,10 @@ fmodify (Lens r) f a =
 -- (18,"abc")
 (|=) ::
   Functor f =>
-  Lens a b
+  Lens s t a b
   -> f b
-  -> a
-  -> f a
+  -> s
+  -> f t
 (|=) l =
   fmodify l . const
 
@@ -184,7 +184,7 @@ infixl 5 |=
 --
 -- prop> let types = (x :: Int, y :: String) in setsetLaw fstL (x, y) z
 fstL ::
-  Lens (x, y) x
+  Lens (a, x) (b, x) a b
 fstL =
   Lens
     (\p (x, y) -> fmap (\x' -> (x', y)) (p x))
@@ -197,7 +197,7 @@ fstL =
 --
 -- prop> let types = (x :: Int, y :: String) in setsetLaw sndL (x, y) z
 sndL ::
-  Lens (x, y) y
+  Lens (x, a) (x, b) a b
 sndL =
   Lens
     (\p (x, y) -> fmap (\y' -> (x, y')) (p y))
@@ -221,10 +221,11 @@ sndL =
 --
 -- >>> set (mapL 33) (Map.fromList (map (\c -> (ord c - 96, c)) ['a'..'d'])) Nothing
 -- fromList [(1,'a'),(2,'b'),(3,'c'),(4,'d')]
+
 mapL ::
   Ord k =>
   k
-  -> Lens (Map k v) (Maybe v)
+  -> Lens (Map k v) (Map k v) (Maybe v) (Maybe v)
 mapL k =
   Lens
     (\p m -> let z = Map.lookup k m
@@ -233,7 +234,6 @@ mapL k =
                               Nothing -> case z of
                                            Just _ -> Map.delete k m
                                            Nothing -> m) (p z))
-
 
 -- |
 --
@@ -257,11 +257,11 @@ mapL k =
 setL ::
   Ord k =>
   k
-  -> Lens (Set k) Bool
+  -> Lens (Set k) (Set k) Bool Bool
 setL k =
   Lens
     (\p s -> fmap (\b -> bool Set.delete Set.insert b k s) (p (Set.member k s)))
-  
+
 -- |
 --
 -- >>> get (compose fstL sndL) ("abc", (7, "def"))
@@ -270,18 +270,18 @@ setL k =
 -- >>> set (compose fstL sndL) ("abc", (7, "def")) 8
 -- ("abc",(8,"def"))
 compose ::
-  Lens b c
-  -> Lens a b
-  -> Lens a c
+  Lens s t a b
+  -> Lens q r s t
+  -> Lens q r a b
 compose (Lens r1) (Lens r2) =
   Lens
     (r2 . r1)
 
 -- | An alias for @compose@.
 (|.) ::
-  Lens b c
-  -> Lens a b
-  -> Lens a c
+  Lens s t a b
+  -> Lens q r s t
+  -> Lens q r a b
 (|.) =
   compose
 
@@ -295,7 +295,7 @@ infixr 9 |.
 -- >>> set identity 3 4
 -- 4
 identity ::
-  Lens a a
+  Lens a b a b
 identity =
   Lens
     id
@@ -328,10 +328,9 @@ instance Functor f => Functor (AlongsideRight f a) where
 -- >>> set (product fstL sndL) (("abc", 3), (4, "def")) ("ghi", "jkl")
 -- (("ghi",3),(4,"jkl"))
 product ::
-  forall a b c d.
-  Lens a b
-  -> Lens c d
-  -> Lens (a, c) (b, d)
+  Lens s t a b
+  -> Lens q r c d
+  -> Lens (s, q) (t, r) (a, c) (b, d)
 product (Lens r1) (Lens r2) =
   Lens
     (\p (a, c) -> getAlongsideRight (r2 (\b2 -> AlongsideRight (
@@ -340,9 +339,9 @@ product (Lens r1) (Lens r2) =
 
 -- | An alias for @product@.
 (***) ::
-  Lens a b
-  -> Lens c d
-  -> Lens (a, c) (b, d)
+  Lens s t a b
+  -> Lens q r c d
+  -> Lens (s, q) (t, r) (a, c) (b, d)
 (***) =
   product
 
@@ -362,9 +361,9 @@ infixr 3 ***
 -- >>> set (choice fstL sndL) (Right ("abc", 7)) 8
 -- Right ("abc",8)
 choice ::
-  Lens a x
-  -> Lens b x
-  -> Lens (Either a b) x
+  Lens s t a b
+  -> Lens q r a b
+  -> Lens (Either s q) (Either t r) a b
 choice (Lens r1) (Lens r2) =
   Lens
     (\p e -> case e of
@@ -373,9 +372,9 @@ choice (Lens r1) (Lens r2) =
 
 -- | An alias for @choice@.
 (|||) ::
-  Lens a x
-  -> Lens b x
-  -> Lens (Either a b) x
+  Lens s t a b
+  -> Lens q r a b
+  -> Lens (Either s q) (Either t r) a b
 (|||) =
   choice
 
@@ -383,56 +382,59 @@ infixr 2 |||
 
 ----
 
+type Lens' a b =
+  Lens a a b b
+
 cityL ::
-  Lens Locality String
+  Lens' Locality String
 cityL =
   Lens
     (\p (Locality c t y) -> fmap (\c' -> Locality c' t y) (p c))
 
 stateL ::
-  Lens Locality String
+  Lens' Locality String
 stateL =
   Lens
     (\p (Locality c t y) -> fmap (\t' -> Locality c t' y) (p t))
 
 countryL ::
-  Lens Locality String
+  Lens' Locality String
 countryL =
   Lens
     (\p (Locality c t y) -> fmap (\y' -> Locality c t y') (p y))
 
 streetL ::
-  Lens Address String
+  Lens' Address String
 streetL =
   Lens
     (\p (Address t s l) -> fmap (\t' -> Address t' s l) (p t))
 
 suburbL ::
-  Lens Address String
+  Lens' Address String
 suburbL =
   Lens
     (\p (Address t s l) -> fmap (\s' -> Address t s' l) (p s))
 
 localityL ::
-  Lens Address Locality
+  Lens' Address Locality
 localityL =
   Lens
     (\p (Address t s l) -> fmap (\l' -> Address t s l') (p l))
 
 ageL ::
-  Lens Person Int
+  Lens' Person Int
 ageL =
   Lens
     (\p (Person a n d) -> fmap (\a' -> Person a' n d) (p a))
 
 nameL ::
-  Lens Person String
+  Lens' Person String
 nameL =
   Lens
     (\p (Person a n d) -> fmap (\n' -> Person a n' d) (p n))
 
 addressL ::
-  Lens Person Address
+  Lens' Person Address
 addressL =
   Lens
     (\p (Person a n d) -> fmap (\d' -> Person a n d') (p d))
