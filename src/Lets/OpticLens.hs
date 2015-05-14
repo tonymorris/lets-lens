@@ -439,6 +439,17 @@ addressL =
   Lens
     (\p (Person a n d) -> fmap (\d' -> Person a n d') (p d))
 
+intAndIntL ::
+  Lens' (IntAnd a) Int
+intAndIntL =
+  Lens (\p (IntAnd n a) -> fmap (\n' -> IntAnd n' a) (p n))
+
+-- lens for polymorphic update
+intAndL ::
+  Lens (IntAnd a) (IntAnd b) a b
+intAndL =
+  Lens (\p (IntAnd n a) -> fmap (\a' -> IntAnd n a') (p a))
+
 -- |
 --
 -- >>> get (suburbL |. addressL) fred
@@ -530,3 +541,16 @@ modifyCityUppercase ::
   -> Person
 modifyCityUppercase =
   cityL |. localityL |. addressL %~ map toUpper
+
+-- |
+--
+-- >>> modify intAndL (even . length) (IntAnd 10 "abc")
+-- IntAnd 10 False
+--
+-- >>> modify intAndL (even . length) (IntAnd 10 "abcd")
+-- IntAnd 10 True
+modifyIntandLengthEven ::
+  IntAnd [a]
+  -> IntAnd Bool
+modifyIntandLengthEven =
+  intAndL %~ even . length

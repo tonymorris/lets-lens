@@ -2,12 +2,14 @@ module Lets.Data (
   Locality(..)
 , Address(..)
 , Person(..)
+, IntAnd(..)
 , fredLocality
 , fredAddress
 , fred
 , maryLocality
 , maryAddress
 , mary
+, tenAndABC
 ) where
 
 data Locality =
@@ -29,6 +31,12 @@ data Person =
     Int -- age
     String -- name
     Address -- address
+  deriving (Eq, Show)
+
+data IntAnd a =
+  IntAnd
+    Int
+    a
   deriving (Eq, Show)
 
 fredLocality ::
@@ -78,3 +86,8 @@ mary =
     28
     "Mary"
     maryAddress
+
+tenAndABC ::
+  IntAnd String
+tenAndABC =
+  IntAnd 10 "ABC"
