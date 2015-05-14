@@ -44,6 +44,7 @@ library
                       Lets.Data
                       Lets.Derive
                       Lets.GetSetLens
+                      Lets.Lens
                       Lets.OpticPolyLens
                       Lets.StoreLens
                       
