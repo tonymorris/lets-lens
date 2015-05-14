@@ -61,26 +61,6 @@ data Lens s t a b =
   Lens
     (forall f. Functor f => (a -> f b) -> s -> f t)
 
-data Const a b =
-  Const {
-    getConst :: 
-      a
-  }
-
-instance Functor (Const a) where
-  fmap _ (Const a) =
-    Const a
-
-data Identity a =
-  Identity {
-    getIdentity ::
-      a
-  }
-
-instance Functor Identity where
-  fmap f (Identity a) =
-    Identity (f a)
-
 get ::
   Lens s t a b
   -> s
@@ -339,26 +319,6 @@ identity ::
 identity =
   Lens
     id
-
-data AlongsideLeft f b a =
-  AlongsideLeft {
-    getAlongsideLeft :: 
-      f (a, b)
-  }
-
-instance Functor f => Functor (AlongsideLeft f b) where
-  fmap f (AlongsideLeft x) =
-    AlongsideLeft (fmap (\(a, b) -> (f a, b)) x)
-
-data AlongsideRight f a b =
-  AlongsideRight {
-    getAlongsideRight :: 
-      f (a, b)
-  }
-
-instance Functor f => Functor (AlongsideRight f a) where
-  fmap f (AlongsideRight x) =
-    AlongsideRight (fmap (\(a, b) -> (a, f b)) x)
 
 -- |
 --

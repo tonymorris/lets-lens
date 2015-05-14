@@ -62,11 +62,6 @@ import Prelude hiding (product)
 -- >>> import qualified Data.Set as Set(fromList)
 -- >>> import Data.Char(ord)
 
-data Store s a =
-  Store
-    (s -> a)
-    s
-
 setS ::
   Store s a
   -> s

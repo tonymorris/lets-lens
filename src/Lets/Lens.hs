@@ -2,11 +2,12 @@
 
 module Lets.Lens where
 
+import Control.Applicative(Applicative(..))
 import Data.Foldable(Foldable(..))
 import Data.Functor((<$>))
 import Data.Monoid(Monoid(..))
 import Data.Traversable(Traversable(..))
-import Control.Applicative(Applicative(..))
+import Lets.Data
 
 -- Let's remind ourselves of Traversable, noting Foldable and Functor.
 --
@@ -16,38 +17,6 @@ import Control.Applicative(Applicative(..))
 --     (a -> f b)
 --     -> t a
 --     -> f (t b)
-
-data Const a b =
-  Const {
-    getConst :: 
-      a
-  }
-
-instance Functor (Const a) where
-  fmap _ (Const a) =
-    Const a
-
-instance Monoid a => Applicative (Const a) where
-  pure _ =
-    Const mempty
-  Const f <*> Const a =
-    Const (f `mappend` a)
-
-data Identity a =
-  Identity {
-    getIdentity ::
-      a
-  }
-
-instance Functor Identity where
-  fmap f (Identity a) =
-    Identity (f a)
-
-instance Applicative Identity where
-  pure =
-    Identity
-  Identity f <*> Identity a =
-    Identity (f a)
 
 -- | Observe that @fmap@ can be recovered from @traverse@ using @Identity@.
 --
@@ -236,6 +205,10 @@ class Profunctor p where
 instance Profunctor (->) where
   dimap f g = \h -> g . h . f
 
+instance Profunctor Tagged where
+  dimap _ g (Tagged x) =
+    Tagged (g x)
+
 diswap ::
   Profunctor p =>
   p (Either a b) (Either c d)
@@ -265,6 +238,12 @@ instance Choice (->) where
   right f =
     either Left (Right . f)
 
+instance Choice Tagged where
+  left (Tagged x) =
+    Tagged (Left x)
+  right (Tagged x) =
+    Tagged (Right x)
+
 ----
 
 -- | A prism is a less specific type of traversal.
@@ -273,3 +252,48 @@ type Prism s t a b =
   (Choice p, Applicative f) =>
   p a (f b)
   -> p s (f t)
+
+_Left ::
+  Prism (Either a x) (Either b x) a b
+_Left =
+  dimap (either Right (Left . Right)) (either pure (fmap Left)) . right
+
+_Right ::
+  Prism (Either x a) (Either x b) a b 
+_Right =
+  dimap (either (Left . Left) Right) (either pure (fmap Right)) . right
+
+prism ::
+  (b -> t)
+  -> (s -> Either t a)
+  -> Prism s t a b
+prism to fr =
+  dimap fr (either pure (fmap to)) . right
+
+_Just ::
+  Prism (Maybe a) (Maybe b) a b
+_Just =
+  prism
+    Just
+    (maybe (Left Nothing) Right)
+
+_Nothing ::
+  Prism (Maybe a) (Maybe a) () ()
+_Nothing =
+  prism
+    (\() -> Nothing)
+    (maybe (Right ()) (Left . Just))
+    
+setP ::
+  Prism s t a b
+  -> s
+  -> Either a t
+setP p =
+  p Left
+
+getP ::
+  Prism s t a b
+  -> b
+  -> t
+getP p =
+  getIdentity . getTagged . p . Tagged . Identity
