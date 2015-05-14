@@ -1,7 +1,47 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Lets.OpticLens where
+module Lets.OpticLens (
+  Lens(..)
+, getsetLaw
+, setgetLaw
+, setsetLaw
+, get
+, set
+, modify
+, (%~)
+, fmodify
+, (|=)
+, fstL
+, sndL
+, mapL
+, setL
+, compose
+, (|.)
+, identity
+, product
+, (***)
+, choice
+, (|||)
+, cityL
+, countryL
+, streetL
+, suburbL
+, localityL
+, ageL
+, nameL
+, addressL
+, intAndIntL
+, intAndL
+, getSuburb
+, setStreet
+, getAgeAndCountry
+, setCityAndLocality
+, getSuburbOrCity
+, setStreetOrState
+, modifyCityUppercase
+, modifyIntandLengthEven
+) where
 
 import Data.Bool(bool)
 import Data.Char(toUpper)
