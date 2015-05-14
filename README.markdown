@@ -11,3 +11,10 @@ OpticLens
 # Sources
 
 https://github.com/ekmett/lens/wiki/Derivation
+
+# TODO
+
+* export list
+* polymorphic update exercise
+* derived lens exercises
+* readme
