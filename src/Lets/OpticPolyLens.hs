@@ -1,7 +1,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Lets.OpticLens (
+module Lets.OpticPolyLens (
   Lens(..)
 , getsetLaw
 , setgetLaw

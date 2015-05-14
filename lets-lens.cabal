@@ -44,7 +44,7 @@ library
                       Lets.Data
                       Lets.Derive
                       Lets.GetSetLens
-                      Lets.OpticLens
+                      Lets.OpticPolyLens
                       Lets.StoreLens
                       
 test-suite            doctests
