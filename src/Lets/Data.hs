@@ -9,7 +9,6 @@ module Lets.Data (
 , maryLocality
 , maryAddress
 , mary
-, tenAndABC
 , Store(..)
 , Const (..)
 , Tagged(..)
@@ -52,7 +51,7 @@ data IntOr a =
   IntOrIs Int
   | IntOrIsNot a
   deriving (Eq, Show)
-  
+
 fredLocality ::
   Locality
 fredLocality =
@@ -100,11 +99,6 @@ mary =
     28
     "Mary"
     maryAddress
-
-tenAndABC ::
-  IntAnd String
-tenAndABC =
-  IntAnd 10 "ABC"
 
 ----
 
