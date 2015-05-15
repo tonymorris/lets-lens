@@ -17,6 +17,11 @@ import Lets.Lens.Choice
 import Lets.Lens.Profunctor
 import Prelude hiding (product)
 
+-- $setup
+-- >>> import qualified Data.Map as Map(fromList)
+-- >>> import qualified Data.Set as Set(fromList)
+-- >>> import Data.Char(ord)
+
 -- Let's remind ourselves of Traversable, noting Foldable and Functor.
 --
 -- class (Foldable t, Functor t) => Traversable t where
@@ -185,6 +190,9 @@ traverseRight _ (Left x) =
 traverseRight f (Right a) =
   Right <$> f a
 
+type Traversal' a b =
+  Traversal a a b b
+
 ----
 
 -- | @Const r@ is @Applicative@, if @Monoid r@, however, without the @Monoid@
@@ -252,6 +260,9 @@ getP ::
   -> t
 getP p =
   getIdentity . getTagged . p . Tagged . Identity
+
+type Prism' a b =
+  Prism a a b b
 
 ----
 
@@ -343,19 +354,11 @@ fmodify l =
 
 infixl 5 |=
 
-
 fstL ::
   Lens (a, x) (b, x) a b
 fstL p (x, y) =
   fmap (\x' -> (x', y)) (p x)
 
--- |
---
--- prop> let types = (x :: Int, y :: String) in getsetLaw sndL (x, y)
---
--- prop> let types = (x :: Int, y :: String) in setgetLaw sndL (x, y) z
---
--- prop> let types = (x :: Int, y :: String) in setsetLaw sndL (x, y) z
 sndL ::
   Lens (x, a) (x, b) a b
 sndL p (x, y) =
@@ -679,7 +682,87 @@ modifyIntandLengthEven ::
 modifyIntandLengthEven =
   intAndL %~ even . length
 
+----
+
+-- |
+--
+-- >>> over traverseLocality (map toUpper) (Locality "abc" "def" "ghi")
+-- Locality "ABC" "DEF" "GHI"
+traverseLocality ::
+  Traversal' Locality String
+traverseLocality f (Locality c t y) =
+  Locality <$> f c <*> f t <*> f y
 
 -- traversal exercises
 
 -- prism exercises
+
+{-
+
+-- |
+--
+-- >>> modify intAndL (even . length) (IntAnd 10 "abc")
+-- IntAnd 10 False
+--
+-- >>> modify intAndL (even . length) (IntAnd 10 "abcd")
+-- IntAnd 10 True
+modifyIntandLengthEven ::
+  IntAnd [a]
+  -> IntAnd Bool
+modifyIntandLengthEven =
+  intAndL %~ even . length
+
+
+data IntOr a =
+  IntOrIs Int
+  | IntOrIsNot a
+  deriving (Eq, Show)
+
+
+intAndIntL ::
+  Lens' (IntAnd a) Int
+intAndIntL p (IntAnd n a) =
+  fmap (\n' -> IntAnd n' a) (p n)
+
+-- lens for polymorphic update
+intAndL ::
+  Lens (IntAnd a) (IntAnd b) a b
+intAndL p (IntAnd n a) =
+  fmap (\a' -> IntAnd n a') (p a)
+
+
+-}
+
+intOrIntP ::
+  Prism' (IntOr a) Int
+intOrIntP =
+  prism
+    IntOrIs
+    (\i -> case i of
+             IntOrIs n -> Right n
+             IntOrIsNot a -> Left (IntOrIsNot a))
+
+intOrP ::
+  Prism (IntOr a) (IntOr b) a b
+intOrP =
+  prism
+    IntOrIsNot
+    (\i -> case i of
+             IntOrIs n -> Left (IntOrIs n)
+             IntOrIsNot a -> Right a)
+
+-- |
+--
+-- >> over intOrP (even . length) (IntOrIsNot "abc")
+-- IntOrIsNot False
+--
+-- >>> over intOrP (even . length) (IntOrIsNot "abcd")
+-- IntOrIsNot True
+--
+-- >>> over intOrP (even . length) (IntOrIs 10)
+-- IntOrIs 10
+intOrLengthEven ::
+  IntOr [a]
+  -> IntOr Bool
+intOrLengthEven =
+  over intOrP (even . length)

@@ -3,6 +3,7 @@ module Lets.Data (
 , Address(..)
 , Person(..)
 , IntAnd(..)
+, IntOr(..)
 , fredLocality
 , fredAddress
 , fred

@@ -20,3 +20,4 @@ https://github.com/ekmett/lens/wiki/Derivation
 * readme
 * Comment out answers to exercises
 * tips on exercises
+* sort out ununused imports
