@@ -18,3 +18,5 @@ https://github.com/ekmett/lens/wiki/Derivation
 * polymorphic update exercise
 * derived lens exercises
 * readme
+* Comment out answers to exercises
+* tips on exercises
