@@ -241,7 +241,6 @@ sndL =
 --
 -- >>> set (mapL 33) (Map.fromList (map (\c -> (ord c - 96, c)) ['a'..'d'])) Nothing
 -- fromList [(1,'a'),(2,'b'),(3,'c'),(4,'d')]
-
 mapL ::
   Ord k =>
   k
@@ -442,13 +441,15 @@ addressL =
 intAndIntL ::
   Lens' (IntAnd a) Int
 intAndIntL =
-  Lens (\p (IntAnd n a) -> fmap (\n' -> IntAnd n' a) (p n))
+  Lens
+    (\p (IntAnd n a) -> fmap (\n' -> IntAnd n' a) (p n))
 
 -- lens for polymorphic update
 intAndL ::
   Lens (IntAnd a) (IntAnd b) a b
 intAndL =
-  Lens (\p (IntAnd n a) -> fmap (\a' -> IntAnd n a') (p a))
+  Lens
+    (\p (IntAnd n a) -> fmap (\a' -> IntAnd n a') (p a))
 
 -- |
 --
