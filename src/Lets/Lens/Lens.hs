@@ -354,11 +354,19 @@ fmodify l =
 
 infixl 5 |=
 
+-- |
+--
+-- >>> modify fstL (*10) (3, "abc")
+-- (30,"abc")
 fstL ::
   Lens (a, x) (b, x) a b
 fstL p (x, y) =
   fmap (\x' -> (x', y)) (p x)
 
+-- |
+--
+-- >>> modify sndL (++ "def") (13, "abc")
+-- (13,"abcdef")
 sndL ::
   Lens (x, a) (x, b) a b
 sndL p (x, y) =

@@ -198,6 +198,9 @@ infixl 5 |=
 
 -- |
 --
+-- >>> modify fstL (*10) (3, "abc")
+-- (30,"abc")
+--
 -- prop> let types = (x :: Int, y :: String) in getsetLaw fstL (x, y)
 --
 -- prop> let types = (x :: Int, y :: String) in setgetLaw fstL (x, y) z
@@ -210,6 +213,9 @@ fstL =
     (\p (x, y) -> fmap (\x' -> (x', y)) (p x))
 
 -- |
+--
+-- >>> modify sndL (++ "def") (13, "abc")
+-- (13,"abcdef")
 --
 -- prop> let types = (x :: Int, y :: String) in getsetLaw sndL (x, y)
 --
