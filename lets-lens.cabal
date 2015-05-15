@@ -36,8 +36,6 @@ library
                       -fno-warn-unused-imports
                       -fno-warn-type-defaults
 
-  default-extensions: InstanceSigs
-
   hs-source-dirs:     src
 
   exposed-modules:    Lets
