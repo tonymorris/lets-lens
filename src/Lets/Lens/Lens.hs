@@ -701,46 +701,13 @@ traverseLocality ::
 traverseLocality f (Locality c t y) =
   Locality <$> f c <*> f t <*> f y
 
--- traversal exercises
-
--- prism exercises
-
-{-
-
 -- |
 --
--- >>> modify intAndL (even . length) (IntAnd 10 "abc")
--- IntAnd 10 False
+-- >>> over intOrIntP (*10) (IntOrIs 3)
+-- IntOrIs 30
 --
--- >>> modify intAndL (even . length) (IntAnd 10 "abcd")
--- IntAnd 10 True
-modifyIntandLengthEven ::
-  IntAnd [a]
-  -> IntAnd Bool
-modifyIntandLengthEven =
-  intAndL %~ even . length
-
-
-data IntOr a =
-  IntOrIs Int
-  | IntOrIsNot a
-  deriving (Eq, Show)
-
-
-intAndIntL ::
-  Lens' (IntAnd a) Int
-intAndIntL p (IntAnd n a) =
-  fmap (\n' -> IntAnd n' a) (p n)
-
--- lens for polymorphic update
-intAndL ::
-  Lens (IntAnd a) (IntAnd b) a b
-intAndL p (IntAnd n a) =
-  fmap (\a' -> IntAnd n a') (p a)
-
-
--}
-
+-- >>> over intOrIntP (*10) (IntOrIsNot "abc")
+-- IntOrIsNot "abc"
 intOrIntP ::
   Prism' (IntOr a) Int
 intOrIntP =
