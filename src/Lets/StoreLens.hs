@@ -1,5 +1,3 @@
-{-# LANGUAGE ScopedTypeVariables #-}
-
 module Lets.StoreLens (
   Store(..)
 , setS
