@@ -255,15 +255,6 @@ getP p =
 
 ----
 
--- lens exercises
-
--- traversal exercises
-
--- prism exercises
-
-----
-
-
 -- |
 --
 -- >>> modify fstL (+1) (0 :: Int, "abc")
@@ -687,3 +678,8 @@ modifyIntandLengthEven ::
   -> IntAnd Bool
 modifyIntandLengthEven =
   intAndL %~ even . length
+
+
+-- traversal exercises
+
+-- prism exercises
