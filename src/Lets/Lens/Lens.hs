@@ -1,6 +1,77 @@
 {-# LANGUAGE RankNTypes #-}
 
-module Lets.Lens.Lens where
+module Lets.Lens.Lens (
+  fmapT
+, over
+, fmapTAgain
+, Set
+, sets
+, mapped
+, set
+, foldMapT
+, foldMapOf
+, foldMapTAgain
+, Fold
+, folds
+, folded
+, Get
+, get
+, Traversal
+, both
+, traverseLeft
+, traverseRight
+, Traversal'
+, Lens
+, Prism
+, _Left
+, _Right
+, prism
+, _Just
+, _Nothing
+, setP
+, getP
+, Prism'
+, modify
+, (%~)
+, (.~)
+, fmodify
+, (|=)
+, fstL
+, sndL
+, mapL
+, setL
+, compose
+, (|.)
+, identity
+, product
+, (***)
+, choice
+, (|||)
+, Lens'
+, cityL
+, stateL
+, countryL
+, streetL
+, suburbL
+, localityL
+, ageL
+, nameL
+, addressL
+, intAndIntL
+, intAndL
+, getSuburb
+, setStreet
+, getAgeAndCountry
+, setCityAndLocality
+, getSuburbOrCity
+, setStreetOrState
+, modifyCityUppercase
+, modifyIntAndLengthEven
+, traverseLocality
+, intOrIntP
+, intOrP
+, intOrLengthEven
+) where
 
 import Control.Applicative(Applicative(..))
 import Data.Bool(bool)
@@ -679,15 +750,15 @@ modifyCityUppercase =
 
 -- |
 --
--- >>> modify intAndL (even . length) (IntAnd 10 "abc")
+-- >>> modifyIntAndLengthEven (IntAnd 10 "abc")
 -- IntAnd 10 False
 --
--- >>> modify intAndL (even . length) (IntAnd 10 "abcd")
+-- >>> modifyIntAndLengthEven (IntAnd 10 "abcd")
 -- IntAnd 10 True
-modifyIntandLengthEven ::
+modifyIntAndLengthEven ::
   IntAnd [a]
   -> IntAnd Bool
-modifyIntandLengthEven =
+modifyIntAndLengthEven =
   intAndL %~ even . length
 
 ----
