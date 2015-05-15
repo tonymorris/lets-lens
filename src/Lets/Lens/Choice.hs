@@ -1,4 +1,7 @@
-module Lets.Lens.Choice where
+module Lets.Lens.Choice
+(
+  Choice(..)
+) where
 
 import Lets.Data
 import Lets.Lens.Profunctor
