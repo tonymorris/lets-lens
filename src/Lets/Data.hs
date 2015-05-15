@@ -48,6 +48,11 @@ data IntAnd a =
     a
   deriving (Eq, Show)
 
+data IntOr a =
+  IntOrIs Int
+  | IntOrIsNot a
+  deriving (Eq, Show)
+  
 fredLocality ::
   Locality
 fredLocality =
@@ -141,7 +146,7 @@ instance Applicative (Tagged a) where
     Tagged
   Tagged f <*> Tagged a =
     Tagged (f a)
-        
+
 data Identity a =
   Identity {
     getIdentity ::

@@ -8,6 +8,8 @@ import Data.Functor((<$>))
 import Data.Monoid(Monoid(..))
 import Data.Traversable(Traversable(..))
 import Lets.Data
+import Lets.Lens.Choice
+import Lets.Lens.Profunctor
 
 -- Let's remind ourselves of Traversable, noting Foldable and Functor.
 --
@@ -193,59 +195,6 @@ type Lens s t a b =
 
 ----
 
--- | A profunctor is a binary functor, with the first argument in contravariant
--- (negative) position and the second argument in covariant (positive) position.
-class Profunctor p where
-  dimap ::
-    (b -> a)
-    -> (c -> d)
-    -> p a c
-    -> p b d
-
-instance Profunctor (->) where
-  dimap f g = \h -> g . h . f
-
-instance Profunctor Tagged where
-  dimap _ g (Tagged x) =
-    Tagged (g x)
-
-diswap ::
-  Profunctor p =>
-  p (Either a b) (Either c d)
-  -> p (Either b a) (Either d c)
-diswap =
-  let swap = either Right Left 
-  in dimap swap swap
-
--- | Map on left or right of @Either@. Only one of @left@ or @right@ needs to be
--- provided.
-class Profunctor p => Choice p where
-  left ::
-    p a b
-    -> p (Either a c) (Either b c)
-  left =
-    diswap . right
-
-  right ::
-    p a b
-    -> p (Either c a) (Either c b)
-  right =
-    diswap . left
-
-instance Choice (->) where
-  left f =
-    either (Left . f) Right
-  right f =
-    either Left (Right . f)
-
-instance Choice Tagged where
-  left (Tagged x) =
-    Tagged (Left x)
-  right (Tagged x) =
-    Tagged (Right x)
-
-----
-
 -- | A prism is a less specific type of traversal.
 type Prism s t a b =
   forall p f.
@@ -283,13 +232,13 @@ _Nothing =
   prism
     (\() -> Nothing)
     (maybe (Right ()) (Left . Just))
-    
+
 setP ::
   Prism s t a b
   -> s
-  -> Either a t
+  -> Either t a
 setP p =
-  p Left
+  either Right Left . p Left
 
 getP ::
   Prism s t a b

@@ -45,6 +45,8 @@ library
                       Lets.Derive
                       Lets.GetSetLens
                       Lets.Lens
+                      Lets.Lens.Choice
+                      Lets.Lens.Profunctor
                       Lets.OpticPolyLens
                       Lets.StoreLens
                       
